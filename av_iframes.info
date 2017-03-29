@@ -1,0 +1,4 @@
+name = AV iframes
+description = Injection iframes to specific pages.
+core = 7.x
+version = 7.x-1.1
