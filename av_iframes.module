@@ -1,0 +1,85 @@
+<?php
+
+/**
+ * @file
+ * Represents hook definition and common methods.
+ */
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function av_iframes_preprocess_page(&$variables) {
+  $types = _av_iframes_get_location();
+  $settings = _av_iframes_get_markup($types);
+
+  $mpath = drupal_get_path('module', 'av_iframes');
+  drupal_add_js(array('avIframes' => $settings), 'setting');
+  drupal_add_js($mpath . '/js/av_iframes.js');
+}
+
+/**
+ * Get type of infection based on current path.
+ *
+ * @return mixed
+ *   Type of injection or NULL.
+ */
+function _av_iframes_get_location() {
+  $result = NULL;
+  $patterns = array(
+    'all' => '*',
+    'stay' => 'stay',
+    'lodging' => 'experiences/lodging/*',
+  );
+
+  $path = drupal_strtolower(drupal_get_path_alias($_GET['q']));
+  foreach ($patterns as $type => $pattern) {
+    $page_match = drupal_match_path($path, $pattern);
+    if ($path != $_GET['q']) {
+      $page_match = $page_match || drupal_match_path($_GET['q'], $pattern);
+    }
+
+    if ($page_match) {
+      $result[$type] = $type;
+    }
+  }
+
+  return $result;
+}
+
+/**
+ * Get markup based on type.
+ *
+ * @param array $types
+ *   Types of injection.
+ *
+ * @return mixed
+ *   Mrrkup or NULL.
+ */
+function _av_iframes_get_markup(array $types) {
+  $result = NULL;
+  foreach ($types as $type) {
+    switch ($type) {
+      case 'all':
+        $result['all'] = '<iframe src="https://acuityplatform.com/Adserver/pxli/6567596593288304796" width="1" height="1" MARGINWIDTH="0" MARGINHEIGHT="0" HSPACE="0" VSPACE="0" FRAMEBORDER="0" SCROLLING="no" BORDERCOLOR="#000000"></iframe>';
+        break;
+
+      case 'stay':
+        $result['stay'] = '<script type="text/javascript" >
+        setTimeout(function(){
+          var head = document.getElementsByTagName("head")[0];
+          var s = document.createElement("script");
+          s.src = window.location.protocol + "//acuityplatform.com/Adserver/pxlj/1865479807496954609?";
+          s.async = true;
+          head.appendChild(s);
+        },5000);
+      </script>';
+        break;
+
+      case 'lodging':
+        $result['lodging'] = '<iframe src="https://acuityplatform.com/Adserver/pxli/2793552974155263248" width="1" height="1" MARGINWIDTH="0" MARGINHEIGHT="0" HSPACE="0" VSPACE="0" FRAMEBORDER="0" SCROLLING="no" BORDERCOLOR="#000000"></iframe>';
+        break;
+    }
+  }
+
+  return $result;
+}
